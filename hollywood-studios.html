@@ -40,10 +40,7 @@
     .ll.none { color: #bbb; }
     .ll.full { background: #f3e5f5; color: #7b1fa2; }
     .showtime-list { font-size: 0.85rem; color: #444; }
-    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
-    .dot.open { background: #43a047; box-shadow: 0 0 0 2px #c8e6c9; }
-    .dot.closed { background: #e53935; box-shadow: 0 0 0 2px #ffcdd2; }
-    .name-cell { display: flex; align-items: center; }
+    .td-nowrap { white-space: nowrap; width: 1%; }
     .hidden { display: none; }
     .view-select { display: none; width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; color: #3949ab; font-weight: 600; margin-bottom: 12px; cursor: pointer; }
     @media (max-width: 600px) {
@@ -261,7 +258,6 @@
 
       document.getElementById('ridesTbody').innerHTML = filtered.map(r => {
         const operating = r.status === 'OPERATING';
-        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
 
         let waitHtml;
         if (!operating) {
@@ -285,9 +281,9 @@
         }
 
         return `<tr>
-          <td><div class="name-cell">${dot}${r.name}</div></td>
-          <td>${waitHtml}</td>
-          <td>${llHtml}</td>
+          <td>${r.name}</td>
+          <td class="td-nowrap">${waitHtml}</td>
+          <td class="td-nowrap">${llHtml}</td>
         </tr>`;
       }).join('');
     }
@@ -311,13 +307,11 @@
       document.getElementById('count').textContent = `Showing ${filtered.length} of ${shows.length} shows`;
 
       document.getElementById('showsTbody').innerHTML = filtered.map(s => {
-        const operating = s.status === 'OPERATING';
-        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
         const upcoming = s.times.filter(t => new Date(t) > now).slice(0, 3);
         const timesHtml = upcoming.length ? upcoming.map(t => fmt12(t)).join('  ·  ') : '—';
         return `<tr>
-          <td><div class="name-cell">${dot}${s.name}</div></td>
-          <td><div class="showtime-list">${timesHtml}</div></td>
+          <td>${s.name}</td>
+          <td class="td-nowrap"><div class="showtime-list">${timesHtml}</div></td>
         </tr>`;
       }).join('');
     }
@@ -379,7 +373,6 @@
 
       document.getElementById('charactersTbody').innerHTML = filtered.map(c => {
         const operating = c.status === 'OPERATING';
-        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
         let waitHtml;
         if (!operating) {
           waitHtml = '<span class="wait unavail">Closed</span>';
@@ -390,8 +383,8 @@
           waitHtml = `<span class="wait ${cls}">${waitText}</span>`;
         }
         return `<tr>
-          <td><div class="name-cell">${dot}${c.name}</div></td>
-          <td>${waitHtml}</td>
+          <td>${c.name}</td>
+          <td class="td-nowrap">${waitHtml}</td>
         </tr>`;
       }).join('');
     }
