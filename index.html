@@ -6,28 +6,33 @@
   <title>WDW Wait Times</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 48px 24px; background: #f5f5f5; }
-    h1 { font-size: 1.4rem; margin-bottom: 32px; text-align: center; }
-    .parks { display: flex; flex-direction: column; gap: 16px; }
+    body { font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 48px 24px; background: #f0f2ff; }
+    h1 { font-size: 1.6rem; margin-bottom: 6px; text-align: center; color: #1a237e; }
+    p { text-align: center; color: #7986cb; font-size: 0.9rem; margin-bottom: 32px; }
+    .parks { display: flex; flex-direction: column; gap: 14px; }
     a.park-btn {
       display: block; text-decoration: none;
-      background: #1a237e; color: #fff;
-      padding: 20px 24px; border-radius: 10px;
-      font-size: 1.1rem; font-weight: 600;
+      padding: 22px 24px; border-radius: 12px;
+      font-size: 1.15rem; font-weight: 700;
       text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.12);
       -webkit-tap-highlight-color: transparent;
+      transition: filter 0.15s;
     }
-    a.park-btn:hover { background: #283593; }
-    a.park-btn:active { background: #0d1257; }
+    a.park-btn:hover { filter: brightness(1.08); }
+    a.park-btn:active { filter: brightness(0.92); }
+    .mk  { background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; }
+    .ep  { background: linear-gradient(135deg, #00695c, #26a69a); color: #fff; }
+    .hs  { background: linear-gradient(135deg, #b71c1c, #ef5350); color: #fff; }
   </style>
 </head>
 <body>
-  <h1>WDW Wait Times</h1>
+  <h1>✨ WDW Wait Times</h1>
+  <p>Choose your park</p>
   <div class="parks">
-    <a class="park-btn" href="magic-kingdom.html">Magic Kingdom</a>
-    <a class="park-btn" href="epcot.html">Epcot</a>
-    <a class="park-btn" href="hollywood-studios.html">Hollywood Studios</a>
+    <a class="park-btn mk" href="magic-kingdom.html">🏰 Magic Kingdom</a>
+    <a class="park-btn ep" href="epcot.html">🌎 Epcot</a>
+    <a class="park-btn hs" href="hollywood-studios.html">🎬 Hollywood Studios</a>
   </div>
 </body>
 </html>

@@ -6,54 +6,75 @@
   <title>Magic Kingdom Wait Times</title>
   <style>
     * { box-sizing: border-box; }
-    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; background: #f5f5f5; }
-    h1 { font-size: 1.3rem; margin-bottom: 4px; }
-#updated { font-size: 0.75rem; color: #666; margin-bottom: 10px; }
+    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; background: #f0f2ff; }
+    h1 { font-size: 1.5rem; margin-bottom: 2px; color: #1a237e; }
+    #updated { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
     .view-toggle { display: flex; gap: 4px; margin-bottom: 12px; }
-    .view-btn { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .view-btn.active { background: #1a237e; color: #fff; border-color: #1a237e; }
+    .view-btn { flex: 1; padding: 8px 4px; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; font-size: 0.82rem; cursor: pointer; -webkit-tap-highlight-color: transparent; color: #3949ab; font-weight: 600; transition: background 0.15s; }
+    .view-btn.active { background: #3949ab; color: #fff; border-color: #3949ab; }
+    .view-btn:hover:not(.active) { background: #e8eaf6; }
     .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    #search { flex: 1; min-width: 160px; padding: 9px 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
-    select#waitFilter { padding: 8px 10px; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
-    #count { font-size: 0.8rem; color: #555; margin-bottom: 6px; }
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    #search { flex: 1; min-width: 160px; padding: 9px 10px; font-size: 16px; border: 2px solid #c5cae9; border-radius: 8px; }
+    #search:focus { outline: none; border-color: #3949ab; }
+    select#waitFilter { padding: 8px 10px; font-size: 0.85rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; cursor: pointer; color: #3949ab; font-weight: 600; }
+    #count { font-size: 0.8rem; color: #7986cb; margin-bottom: 6px; }
+    .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 70vh; -webkit-overflow-scrolling: touch; border-radius: 10px; box-shadow: 0 2px 8px rgba(57,73,171,0.12); }
     table { width: 100%; border-collapse: collapse; background: #fff; }
-    th { background: #1a237e; color: #fff; padding: 10px 12px; text-align: left; cursor: pointer; user-select: none; white-space: nowrap; font-size: 0.85rem; position: sticky; top: 0; z-index: 1; }
-    th.no-sort { cursor: default; }
-    th:not(.no-sort):active { background: #283593; }
+    th { background: #3949ab; color: #fff; padding: 10px 12px; text-align: left; cursor: pointer; user-select: none; white-space: nowrap; font-size: 0.85rem; position: sticky; top: 0; z-index: 1; }
+    th:active { background: #283593; }
     th .arrow { margin-left: 4px; opacity: 0.6; }
     th.active .arrow { opacity: 1; }
-    td { padding: 10px 12px; border-top: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
-    .wait { font-weight: 600; }
+    tr:nth-child(even) td { background: #f5f6ff; }
+    td { padding: 10px 12px; border-top: 1px solid #e8eaf6; font-size: 0.9rem; vertical-align: middle; }
+    .wait { font-weight: 700; }
     .wait.low { color: #2e7d32; }
     .wait.mid { color: #e65100; }
     .wait.high { color: #c62828; }
-    .wait.unavail { color: #888; font-weight: 400; }
+    .wait.unavail { color: #aaa; font-weight: 400; }
     .trend { font-size: 0.8rem; margin-left: 4px; }
     .trend.up { color: #c62828; }
     .trend.down { color: #2e7d32; }
-    .ll { font-size: 0.8rem; padding: 2px 7px; border-radius: 10px; display: inline-block; }
+    .ll { font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; display: inline-block; font-weight: 600; }
     .ll.free { background: #e3f2fd; color: #1565c0; }
     .ll.paid { background: #fff3e0; color: #e65100; }
-    .ll.none { color: #aaa; }
-    .ll.full { background: #eee; color: #888; }
-    .showtime-list { font-size: 0.85rem; color: #333; }
-    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; flex-shrink: 0; }
-    .dot.open { background: #2e7d32; }
-    .dot.closed { background: #c62828; }
+    .ll.none { color: #bbb; }
+    .ll.full { background: #f3e5f5; color: #7b1fa2; }
+    .showtime-list { font-size: 0.85rem; color: #444; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+    .dot.open { background: #43a047; box-shadow: 0 0 0 2px #c8e6c9; }
+    .dot.closed { background: #e53935; box-shadow: 0 0 0 2px #ffcdd2; }
     .name-cell { display: flex; align-items: center; }
     .hidden { display: none; }
+    .view-select { display: none; width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; color: #3949ab; font-weight: 600; margin-bottom: 12px; cursor: pointer; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.15rem; }
+      #updated { font-size: 0.7rem; }
+      .view-toggle { display: none; }
+      .view-select { display: block; }
+      th { font-size: 0.78rem; padding: 8px 9px; }
+      td { font-size: 0.82rem; padding: 8px 9px; }
+      .ll { font-size: 0.72rem; padding: 2px 5px; }
+      .showtime-list { font-size: 0.78rem; }
+      #count { font-size: 0.72rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>Magic Kingdom</h1>
-<div id="updated">Loading...</div>
+  <h1>🏰 Magic Kingdom</h1>
+  <div id="updated">Loading...</div>
 
   <div class="view-toggle">
-    <button class="view-btn active" data-view="rides">Rides</button>
-    <button class="view-btn" data-view="shows">Shows</button>
-    <button class="view-btn" data-view="dining">Dining</button>
+    <button class="view-btn active" data-view="rides">🎢 Rides</button>
+    <button class="view-btn" data-view="shows">🎭 Shows</button>
+    <button class="view-btn" data-view="characters">🌟 Characters</button>
+    <button class="view-btn" data-view="dining">🍽️ Dining</button>
   </div>
+  <select id="viewSelect" class="view-select">
+    <option value="rides">🎢 Rides</option>
+    <option value="shows">🎭 Shows</option>
+    <option value="characters">🌟 Characters</option>
+    <option value="dining">🍽️ Dining</option>
+  </select>
 
   <div class="filters">
     <input id="search" type="text" placeholder="Search...">
@@ -74,10 +95,22 @@
         <tr>
           <th data-col="name">Name <span class="arrow"></span></th>
           <th data-col="wait" class="active">Wait <span class="arrow">▲</span></th>
-          <th data-col="ll" class="no-sort">Lightning Lane</th>
+          <th data-col="ll">Lightning Lane <span class="arrow"></span></th>
         </tr>
       </thead>
       <tbody id="ridesTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap hidden" id="charactersWrap">
+    <table id="charactersTable">
+      <thead>
+        <tr>
+          <th data-col="name">Name <span class="arrow"></span></th>
+          <th data-col="wait" class="active">Wait <span class="arrow">▲</span></th>
+        </tr>
+      </thead>
+      <tbody id="charactersTbody"></tbody>
     </table>
   </div>
 
@@ -108,10 +141,11 @@
   <script>
     const API_URL = 'https://api.themeparks.wiki/v1/entity/75ea578a-adc8-4116-a54d-dccb60765ef9/live';
 
-    let rides = [], shows = [], dining = [];
+    let rides = [], shows = [], characters = [], dining = [];
     let currentView = 'rides';
     let rideSort = { col: 'wait', dir: 1 };
     let showSort = { col: 'next', dir: 1 };
+    let characterSort = { col: 'wait', dir: 1 };
     let diningSort = { col: 'wait', dir: 1 };
 
     function parseLl(queue) {
@@ -166,8 +200,17 @@
           status: e.status,
         }));
 
-      shows = (data.liveData || [])
-        .filter(e => e.entityType === 'SHOW')
+      const showEntities = (data.liveData || []).filter(e => e.entityType === 'SHOW');
+      characters = showEntities
+        .filter(e => e.queue?.STANDBY?.waitTime !== undefined)
+        .map(e => ({
+          name: e.name,
+          wait: e.queue.STANDBY.waitTime,
+          status: e.status,
+        }));
+      const characterIds = new Set(characters.map(c => c.name));
+      shows = showEntities
+        .filter(e => !characterIds.has(e.name))
         .map(e => {
           const times = (e.showtimes || []).map(s => s.startTime).sort();
           const next = times.find(t => new Date(t) > now) ?? null;
@@ -187,8 +230,15 @@
 
     function rideWaitValue(r) {
       if (r.status !== 'OPERATING') return Infinity;
-      if (r.wait === null) return -1; // "No wait" sorts first
+      if (r.wait === null) return -1;
       return r.wait;
+    }
+
+    function llSortValue(r) {
+      const { type, state, time } = r.ll;
+      if (!type) return Number.MAX_SAFE_INTEGER;
+      if (state !== 'AVAILABLE') return Number.MAX_SAFE_INTEGER - 1;
+      return time ? new Date(time).getTime() : 0;
     }
 
     function renderRides() {
@@ -203,9 +253,8 @@
 
       filtered.sort((a, b) => {
         const { col, dir } = rideSort;
-        if (col === 'wait') {
-          return dir * (rideWaitValue(a) - rideWaitValue(b));
-        }
+        if (col === 'wait') return dir * (rideWaitValue(a) - rideWaitValue(b));
+        if (col === 'll') return dir * (llSortValue(a) - llSortValue(b));
         return dir * a.name.localeCompare(b.name);
       });
 
@@ -311,9 +360,47 @@
       }).join('');
     }
 
+    function renderCharacters() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const maxWait = parseInt(document.getElementById('waitFilter').value);
+
+      let filtered = characters.filter(c => {
+        if (!c.name.toLowerCase().includes(q)) return false;
+        if (maxWait > 0 && (c.wait === null || c.wait > maxWait)) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        const { col, dir } = characterSort;
+        if (col === 'wait') return dir * (rideWaitValue(a) - rideWaitValue(b));
+        return dir * a.name.localeCompare(b.name);
+      });
+
+      document.getElementById('count').textContent = `Showing ${filtered.length} of ${characters.length} characters`;
+
+      document.getElementById('charactersTbody').innerHTML = filtered.map(c => {
+        const operating = c.status === 'OPERATING';
+        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
+        let waitHtml;
+        if (!operating) {
+          waitHtml = '<span class="wait unavail">Closed</span>';
+        } else {
+          const w = c.wait;
+          const cls = w === null ? 'low' : w <= 20 ? 'low' : w <= 45 ? 'mid' : 'high';
+          const waitText = w !== null ? w + ' min' : 'No wait';
+          waitHtml = `<span class="wait ${cls}">${waitText}</span>`;
+        }
+        return `<tr>
+          <td><div class="name-cell">${dot}${c.name}</div></td>
+          <td>${waitHtml}</td>
+        </tr>`;
+      }).join('');
+    }
+
     function render() {
       if (currentView === 'rides') renderRides();
       else if (currentView === 'shows') renderShows();
+      else if (currentView === 'characters') renderCharacters();
       else renderDining();
     }
 
@@ -322,8 +409,10 @@
       document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
       document.getElementById('ridesWrap').classList.toggle('hidden', view !== 'rides');
       document.getElementById('showsWrap').classList.toggle('hidden', view !== 'shows');
+      document.getElementById('charactersWrap').classList.toggle('hidden', view !== 'characters');
       document.getElementById('diningWrap').classList.toggle('hidden', view !== 'dining');
-      document.getElementById('waitFilter').style.display = (view === 'rides' || view === 'dining') ? '' : 'none';
+      document.getElementById('waitFilter').style.display = (view === 'rides' || view === 'characters' || view === 'dining') ? '' : 'none';
+      document.getElementById('viewSelect').value = view;
       render();
     }
 
@@ -343,8 +432,9 @@
     document.getElementById('search').addEventListener('input', render);
     document.getElementById('waitFilter').addEventListener('change', render);
     document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+    document.getElementById('viewSelect').addEventListener('change', e => setView(e.target.value));
 
-    document.querySelectorAll('#ridesTable th[data-col]:not(.no-sort)').forEach(th => {
+    document.querySelectorAll('#ridesTable th[data-col]').forEach(th => {
       th.addEventListener('click', () => {
         const col = th.dataset.col;
         rideSort.dir = rideSort.col === col ? rideSort.dir * -1 : 1;
@@ -374,8 +464,19 @@
       });
     });
 
+    document.querySelectorAll('#charactersTable th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        characterSort.dir = characterSort.col === col ? characterSort.dir * -1 : 1;
+        characterSort.col = col;
+        applySortUI('charactersTable', characterSort);
+        renderCharacters();
+      });
+    });
+
     applySortUI('ridesTable', rideSort);
     applySortUI('showsTable', showSort);
+    applySortUI('charactersTable', characterSort);
     applySortUI('diningTable', diningSort);
     load();
   </script>
