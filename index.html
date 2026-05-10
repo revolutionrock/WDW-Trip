@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WDW Wait Times</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 48px 24px; background: #f5f5f5; }
+    h1 { font-size: 1.4rem; margin-bottom: 32px; text-align: center; }
+    .parks { display: flex; flex-direction: column; gap: 16px; }
+    a.park-btn {
+      display: block; text-decoration: none;
+      background: #1a237e; color: #fff;
+      padding: 20px 24px; border-radius: 10px;
+      font-size: 1.1rem; font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      -webkit-tap-highlight-color: transparent;
+    }
+    a.park-btn:hover { background: #283593; }
+    a.park-btn:active { background: #0d1257; }
+  </style>
+</head>
+<body>
+  <h1>WDW Wait Times</h1>
+  <div class="parks">
+    <a class="park-btn" href="magic-kingdom.html">Magic Kingdom</a>
+    <a class="park-btn" href="epcot.html">Epcot</a>
+    <a class="park-btn" href="hollywood-studios.html">Hollywood Studios</a>
+  </div>
+</body>
+</html>

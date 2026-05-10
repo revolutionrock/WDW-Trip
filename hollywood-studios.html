@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hollywood Studios Wait Times</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 1.3rem; margin-bottom: 4px; }
+#updated { font-size: 0.75rem; color: #666; margin-bottom: 10px; }
+    .view-toggle { display: flex; gap: 4px; margin-bottom: 12px; }
+    .view-btn { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 0.9rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .view-btn.active { background: #1a237e; color: #fff; border-color: #1a237e; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    #search { flex: 1; min-width: 160px; padding: 9px 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    select#waitFilter { padding: 8px 10px; font-size: 0.85rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; }
+    #count { font-size: 0.8rem; color: #555; margin-bottom: 6px; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th { background: #1a237e; color: #fff; padding: 10px 12px; text-align: left; cursor: pointer; user-select: none; white-space: nowrap; font-size: 0.85rem; position: sticky; top: 0; z-index: 1; }
+    th.no-sort { cursor: default; }
+    th:not(.no-sort):active { background: #283593; }
+    th .arrow { margin-left: 4px; opacity: 0.6; }
+    th.active .arrow { opacity: 1; }
+    td { padding: 10px 12px; border-top: 1px solid #eee; font-size: 0.9rem; vertical-align: middle; }
+    .wait { font-weight: 600; }
+    .wait.low { color: #2e7d32; }
+    .wait.mid { color: #e65100; }
+    .wait.high { color: #c62828; }
+    .wait.unavail { color: #888; font-weight: 400; }
+    .trend { font-size: 0.8rem; margin-left: 4px; }
+    .trend.up { color: #c62828; }
+    .trend.down { color: #2e7d32; }
+    .ll { font-size: 0.8rem; padding: 2px 7px; border-radius: 10px; display: inline-block; }
+    .ll.free { background: #e3f2fd; color: #1565c0; }
+    .ll.paid { background: #fff3e0; color: #e65100; }
+    .ll.none { color: #aaa; }
+    .ll.full { background: #eee; color: #888; }
+    .showtime-list { font-size: 0.85rem; color: #333; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; flex-shrink: 0; }
+    .dot.open { background: #2e7d32; }
+    .dot.closed { background: #c62828; }
+    .name-cell { display: flex; align-items: center; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Hollywood Studios</h1>
+<div id="updated">Loading...</div>
+
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="rides">Rides</button>
+    <button class="view-btn" data-view="shows">Shows</button>
+    <button class="view-btn" data-view="dining">Dining</button>
+  </div>
+
+  <div class="filters">
+    <input id="search" type="text" placeholder="Search...">
+    <select id="waitFilter">
+      <option value="0">Any wait</option>
+      <option value="15">≤ 15 min</option>
+      <option value="30">≤ 30 min</option>
+      <option value="45">≤ 45 min</option>
+      <option value="60">≤ 60 min</option>
+    </select>
+  </div>
+
+  <div id="count"></div>
+
+  <div class="table-wrap" id="ridesWrap">
+    <table id="ridesTable">
+      <thead>
+        <tr>
+          <th data-col="name">Name <span class="arrow"></span></th>
+          <th data-col="wait" class="active">Wait <span class="arrow">▲</span></th>
+          <th data-col="ll" class="no-sort">Lightning Lane</th>
+        </tr>
+      </thead>
+      <tbody id="ridesTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap hidden" id="diningWrap">
+    <table id="diningTable">
+      <thead>
+        <tr>
+          <th data-col="name">Name <span class="arrow"></span></th>
+          <th data-col="wait" class="active">Wait <span class="arrow">▲</span></th>
+        </tr>
+      </thead>
+      <tbody id="diningTbody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap hidden" id="showsWrap">
+    <table id="showsTable">
+      <thead>
+        <tr>
+          <th data-col="name">Name <span class="arrow"></span></th>
+          <th data-col="next" class="active">Next Showtimes <span class="arrow">▲</span></th>
+        </tr>
+      </thead>
+      <tbody id="showsTbody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_URL = 'https://api.themeparks.wiki/v1/entity/288747d1-8b4f-4a64-867e-ea7c9b27bad8/live';
+
+    let rides = [], shows = [], dining = [];
+    let currentView = 'rides';
+    let rideSort = { col: 'wait', dir: 1 };
+    let showSort = { col: 'next', dir: 1 };
+    let diningSort = { col: 'wait', dir: 1 };
+
+    function parseLl(queue) {
+      if (!queue) return { type: null };
+      if (queue.RETURN_TIME) {
+        const rt = queue.RETURN_TIME;
+        return { type: 'free', state: rt.state, time: rt.returnStart };
+      }
+      if (queue.PAID_RETURN_TIME) {
+        const rt = queue.PAID_RETURN_TIME;
+        return { type: 'paid', state: rt.state, time: rt.returnStart, price: rt.price?.formatted ?? null };
+      }
+      return { type: null };
+    }
+
+    function trendArrow(forecast) {
+      if (!forecast?.length) return '';
+      const now = Date.now();
+      const future = forecast.filter(f => new Date(f.time) > now).slice(0, 2);
+      if (future.length < 2) return '';
+      const diff = future[1].waitTime - future[0].waitTime;
+      if (diff >= 5) return '<span class="trend up">▲</span>';
+      if (diff <= -5) return '<span class="trend down">▼</span>';
+      return '';
+    }
+
+    function fmt12(isoStr) {
+      return new Date(isoStr).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    async function load() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      const timestamps = (data.liveData || [])
+        .map(e => e.lastUpdated ? new Date(e.lastUpdated).getTime() : 0)
+        .filter(t => t > 0);
+      const latest = timestamps.length ? Math.max(...timestamps) : null;
+      document.getElementById('updated').textContent = latest
+        ? 'Last updated: ' + new Date(latest).toLocaleTimeString()
+        : '';
+
+      const now = Date.now();
+      rides = (data.liveData || [])
+        .filter(e => e.entityType === 'ATTRACTION')
+        .map(e => ({
+          name: e.name,
+          wait: e.queue?.STANDBY?.waitTime ?? null,
+          ll: parseLl(e.queue),
+          forecast: e.forecast ?? null,
+          status: e.status,
+        }));
+
+      shows = (data.liveData || [])
+        .filter(e => e.entityType === 'SHOW')
+        .map(e => {
+          const times = (e.showtimes || []).map(s => s.startTime).sort();
+          const next = times.find(t => new Date(t) > now) ?? null;
+          return { name: e.name, times, next, status: e.status };
+        });
+
+      dining = (data.liveData || [])
+        .filter(e => e.entityType === 'RESTAURANT')
+        .map(e => ({
+          name: e.name,
+          wait: e.queue?.STANDBY?.waitTime ?? null,
+          status: e.status,
+        }));
+
+      render();
+    }
+
+    function rideWaitValue(r) {
+      if (r.status !== 'OPERATING') return Infinity;
+      if (r.wait === null) return -1;
+      return r.wait;
+    }
+
+    function renderRides() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const maxWait = parseInt(document.getElementById('waitFilter').value);
+
+      let filtered = rides.filter(r => {
+        if (!r.name.toLowerCase().includes(q)) return false;
+        if (maxWait > 0 && (r.wait === null || r.wait > maxWait)) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        const { col, dir } = rideSort;
+        if (col === 'wait') return dir * (rideWaitValue(a) - rideWaitValue(b));
+        return dir * a.name.localeCompare(b.name);
+      });
+
+      document.getElementById('count').textContent = `Showing ${filtered.length} of ${rides.length} rides`;
+
+      document.getElementById('ridesTbody').innerHTML = filtered.map(r => {
+        const operating = r.status === 'OPERATING';
+        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
+
+        let waitHtml;
+        if (!operating) {
+          waitHtml = '<span class="wait unavail">Closed</span>';
+        } else {
+          const w = r.wait;
+          const cls = w === null ? 'low' : w <= 20 ? 'low' : w <= 45 ? 'mid' : 'high';
+          const waitText = w !== null ? w + ' min' : 'No wait';
+          waitHtml = `<span class="wait ${cls}">${waitText}</span>${trendArrow(r.forecast)}`;
+        }
+
+        let llHtml;
+        const { type, state, time, price } = r.ll;
+        if (!type) {
+          llHtml = '<span class="ll none">N/A</span>';
+        } else if (state === 'AVAILABLE') {
+          const label = time ? fmt12(time) : (type === 'paid' && price ? price : 'Available');
+          llHtml = `<span class="ll ${type}">${label}</span>`;
+        } else {
+          llHtml = '<span class="ll full">Full</span>';
+        }
+
+        return `<tr>
+          <td><div class="name-cell">${dot}${r.name}</div></td>
+          <td>${waitHtml}</td>
+          <td>${llHtml}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderShows() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const now = Date.now();
+
+      let filtered = shows.filter(s => s.name.toLowerCase().includes(q));
+
+      filtered.sort((a, b) => {
+        const { col, dir } = showSort;
+        if (col === 'next') {
+          const av = a.next ? new Date(a.next).getTime() : Infinity;
+          const bv = b.next ? new Date(b.next).getTime() : Infinity;
+          return dir * (av - bv);
+        }
+        return dir * a.name.localeCompare(b.name);
+      });
+
+      document.getElementById('count').textContent = `Showing ${filtered.length} of ${shows.length} shows`;
+
+      document.getElementById('showsTbody').innerHTML = filtered.map(s => {
+        const operating = s.status === 'OPERATING';
+        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
+        const upcoming = s.times.filter(t => new Date(t) > now).slice(0, 3);
+        const timesHtml = upcoming.length ? upcoming.map(t => fmt12(t)).join('  ·  ') : '—';
+        return `<tr>
+          <td><div class="name-cell">${dot}${s.name}</div></td>
+          <td><div class="showtime-list">${timesHtml}</div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderDining() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const maxWait = parseInt(document.getElementById('waitFilter').value);
+
+      let filtered = dining.filter(r => {
+        if (!r.name.toLowerCase().includes(q)) return false;
+        if (maxWait > 0 && (r.wait === null || r.wait > maxWait)) return false;
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        const { col, dir } = diningSort;
+        if (col === 'wait') return dir * (rideWaitValue(a) - rideWaitValue(b));
+        return dir * a.name.localeCompare(b.name);
+      });
+
+      document.getElementById('count').textContent = `Showing ${filtered.length} of ${dining.length} restaurants`;
+
+      document.getElementById('diningTbody').innerHTML = filtered.map(r => {
+        const operating = r.status === 'OPERATING';
+        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
+        let waitHtml;
+        if (!operating) {
+          waitHtml = '<span class="wait unavail">Closed</span>';
+        } else {
+          const w = r.wait;
+          const cls = w === null ? 'low' : w <= 20 ? 'low' : w <= 45 ? 'mid' : 'high';
+          const waitText = w !== null ? w + ' min' : 'No wait';
+          waitHtml = `<span class="wait ${cls}">${waitText}</span>`;
+        }
+        return `<tr>
+          <td><div class="name-cell">${dot}${r.name}</div></td>
+          <td>${waitHtml}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function render() {
+      if (currentView === 'rides') renderRides();
+      else if (currentView === 'shows') renderShows();
+      else renderDining();
+    }
+
+    function setView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.getElementById('ridesWrap').classList.toggle('hidden', view !== 'rides');
+      document.getElementById('showsWrap').classList.toggle('hidden', view !== 'shows');
+      document.getElementById('diningWrap').classList.toggle('hidden', view !== 'dining');
+      document.getElementById('waitFilter').style.display = (view === 'rides' || view === 'dining') ? '' : 'none';
+      render();
+    }
+
+    function applySortUI(tableId, sortState) {
+      document.querySelectorAll(`#${tableId} th`).forEach(t => {
+        t.classList.remove('active');
+        if (t.querySelector('.arrow')) t.querySelector('.arrow').textContent = '';
+      });
+      const active = document.querySelector(`#${tableId} th[data-col="${sortState.col}"]`);
+      if (active) {
+        active.classList.add('active');
+        if (active.querySelector('.arrow'))
+          active.querySelector('.arrow').textContent = sortState.dir === -1 ? '▼' : '▲';
+      }
+    }
+
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('waitFilter').addEventListener('change', render);
+    document.querySelectorAll('.view-btn').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+    document.querySelectorAll('#ridesTable th[data-col]:not(.no-sort)').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        rideSort.dir = rideSort.col === col ? rideSort.dir * -1 : 1;
+        rideSort.col = col;
+        applySortUI('ridesTable', rideSort);
+        renderRides();
+      });
+    });
+
+    document.querySelectorAll('#showsTable th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        showSort.dir = showSort.col === col ? showSort.dir * -1 : 1;
+        showSort.col = col;
+        applySortUI('showsTable', showSort);
+        renderShows();
+      });
+    });
+
+    document.querySelectorAll('#diningTable th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        diningSort.dir = diningSort.col === col ? diningSort.dir * -1 : 1;
+        diningSort.col = col;
+        applySortUI('diningTable', diningSort);
+        renderDining();
+      });
+    });
+
+    applySortUI('ridesTable', rideSort);
+    applySortUI('showsTable', showSort);
+    applySortUI('diningTable', diningSort);
+    load();
+  </script>
+</body>
+</html>
