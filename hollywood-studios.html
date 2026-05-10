@@ -274,8 +274,8 @@
         if (!type) {
           llHtml = '<span class="ll none">N/A</span>';
         } else if (state === 'AVAILABLE') {
-          const label = time ? fmt12(time) : (type === 'paid' && price ? price : 'Available');
-          llHtml = `<span class="ll ${type}">${label}</span>`;
+          const label = time ? fmt12(time) : 'Available';
+          llHtml = `<span class="ll free">${label}${type === 'paid' ? '*' : ''}</span>`;
         } else {
           llHtml = '<span class="ll full">Full</span>';
         }
