@@ -49,6 +49,9 @@
     .ll.full { background: #f3e5f5; color: #7b1fa2; }
     .showtime-list { font-size: 0.85rem; color: #444; }
     .td-nowrap { white-space: nowrap; width: 1%; }
+    .ride-link { color: inherit; text-decoration: underline; text-decoration-color: #c5cae9; text-underline-offset: 2px; }
+    .ride-link:hover { text-decoration-color: #3949ab; color: #3949ab; }
+    .ride-link.loading { opacity: 0.5; pointer-events: none; }
     .hidden { display: none; }
     .view-select { display: none; width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; color: #3949ab; font-weight: 600; margin-bottom: 12px; cursor: pointer; }
     @media (max-width: 600px) {
@@ -71,6 +74,7 @@
       <a href="magic-kingdom.html">🏰 Magic Kingdom</a>
       <a class="current" href="epcot.html">🌎 Epcot</a>
       <a href="hollywood-studios.html">🎬 Hollywood Studios</a>
+      <a href="animal-kingdom.html">🌿 Animal Kingdom</a>
     </div>
   </div>
   <div class="view-toggle">
@@ -156,8 +160,39 @@
     const HEIGHT_REQS = {
       "Guardians of the Galaxy: Cosmic Rewind": 42,
       'Test Track': 40,
-      'Soarin\' Around the World': 44,
+      "Soarin' Around the World": 44,
       "Remy's Ratatouille Adventure": 42,
+    };
+    const LOCATIONS = {
+      "Disney and Pixar Short Film Festival": { lat: 28.37263, lng: -81.55115 },
+      "The Seas with Nemo & Friends": { lat: 28.374904, lng: -81.550852 },
+      "Frozen Ever After": { lat: 28.370745, lng: -81.54653 },
+      "Awesome Planet": { lat: 28.374301, lng: -81.552138 },
+      "American Heritage Gallery": { lat: 28.367517, lng: -81.549469 },
+      "Remy's Ratatouille Adventure": { lat: 28.36825, lng: -81.553097 },
+      "Advanced Training Lab": { lat: 28.374185, lng: -81.547072 },
+      "Stave Church Gallery": { lat: 28.370621, lng: -81.546971 },
+      "Turtle Talk With Crush": { lat: 28.375255, lng: -81.551047 },
+      "Bruce's Shark World": { lat: 28.375099, lng: -81.551245 },
+      "Impressions de France": { lat: 28.368864, lng: -81.552978 },
+      "Journey Into Imagination With Figment": { lat: 28.372994, lng: -81.551401 },
+      "Reflections of China": { lat: 28.369791, lng: -81.546381 },
+      "The American Adventure": { lat: 28.367517, lng: -81.549446 },
+      "Mexico Folk Art Gallery": { lat: 28.371511, lng: -81.54746 },
+      "Spaceship Earth": { lat: 28.375583, lng: -81.549401 },
+      "Test Track": { lat: 28.373228, lng: -81.547489 },
+      "Living with the Land": { lat: 28.374245, lng: -81.552301 },
+      "SeaBase Aquarium": { lat: 28.375098, lng: -81.551211 },
+      'ImageWorks - The "What If" Labs': { lat: 28.372774, lng: -81.551121 },
+      "Gallery of Arts and History": { lat: 28.368236, lng: -81.551612 },
+      "House of the Whispering Willows": { lat: 28.36999, lng: -81.546334 },
+      "Journey of Water, Inspired by Moana": { lat: 28.374691, lng: -81.550378 },
+      "Beauty and the Beast Sing-Along": { lat: 28.368864, lng: -81.552978 },
+      "Canada Far and Wide in Circle-Vision 360": { lat: 28.371694, lng: -81.55196 },
+      "Soarin' Around the World": { lat: 28.373592, lng: -81.552248 },
+      "Mission: SPACE": { lat: 28.373927, lng: -81.547156 },
+      "Guardians of the Galaxy: Cosmic Rewind": { lat: 28.3749021961781, lng: -81.5478397673417 },
+      "Gran Fiesta Tour Starring The Three Caballeros": { lat: 28.371649, lng: -81.547368 },
     };
 
     let rides = [], shows = [], characters = [], dining = [];
@@ -211,6 +246,7 @@
       rides = (data.liveData || [])
         .filter(e => e.entityType === 'ATTRACTION')
         .map(e => ({
+          id: e.id,
           name: e.name,
           wait: e.queue?.STANDBY?.waitTime ?? null,
           ll: parseLl(e.queue),
@@ -303,7 +339,7 @@
         }
 
         return `<tr>
-          <td>${r.name}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''}</td>
+          <td>${LOCATIONS[r.name] ? `<a class="ride-link" href="https://maps.google.com/?q=${LOCATIONS[r.name].lat},${LOCATIONS[r.name].lng}" target="_blank">${r.name}</a>` : `<a class="ride-link" href="#" onclick="locateRide('${r.id}',this);return false;">${r.name}</a>`}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''}</td>
           <td class="td-nowrap">${waitHtml}</td>
           <td class="td-nowrap">${llHtml}</td>
         </tr>`;
@@ -493,6 +529,25 @@
     applySortUI('charactersTable', characterSort);
     applySortUI('diningTable', diningSort);
     load();
+
+    const locationCache = {};
+    async function locateRide(id, el) {
+      if (locationCache[id]) {
+        window.open(`https://maps.google.com/?q=${locationCache[id].lat},${locationCache[id].lng}`, '_blank');
+        return;
+      }
+      el.classList.add('loading');
+      try {
+        const data = await fetch(`https://api.themeparks.wiki/v1/entity/${id}`).then(r => r.json());
+        const lat = data.location?.latitude, lng = data.location?.longitude;
+        if (lat && lng) {
+          locationCache[id] = { lat, lng };
+          window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+        }
+      } finally {
+        el.classList.remove('loading');
+      }
+    }
 
     function toggleMenu() {
       document.getElementById('parkMenu').classList.toggle('open');

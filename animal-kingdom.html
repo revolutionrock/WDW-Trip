@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Magic Kingdom Wait Times</title>
+  <title>Animal Kingdom Wait Times</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; background: #f0f2ff; }
@@ -69,14 +69,15 @@
 </head>
 <body>
   <div class="park-switcher">
-    <h1 id="parkHeading" onclick="toggleMenu()">🏰 Magic Kingdom <span class="caret">▾</span></h1>
+    <h1 id="parkHeading" onclick="toggleMenu()">🌿 Animal Kingdom <span class="caret">▾</span></h1>
     <div class="park-menu" id="parkMenu">
-      <a class="current" href="magic-kingdom.html">🏰 Magic Kingdom</a>
+      <a href="magic-kingdom.html">🏰 Magic Kingdom</a>
       <a href="epcot.html">🌎 Epcot</a>
       <a href="hollywood-studios.html">🎬 Hollywood Studios</a>
-      <a href="animal-kingdom.html">🌿 Animal Kingdom</a>
+      <a class="current" href="animal-kingdom.html">🌿 Animal Kingdom</a>
     </div>
   </div>
+
   <div class="view-toggle">
     <button class="view-btn active" data-view="rides">🎢 Rides</button>
     <button class="view-btn" data-view="shows">🎭 Shows</button>
@@ -156,52 +157,28 @@
   </div>
 
   <script>
-    const API_URL = 'https://api.themeparks.wiki/v1/entity/75ea578a-adc8-4116-a54d-dccb60765ef9/live';
+    const API_URL = 'https://api.themeparks.wiki/v1/entity/1c84a229-8862-4648-9c71-378ddd2c7693/live';
     const HEIGHT_REQS = {
-      'The Barnstormer': 35,
-      'Big Thunder Mountain Railroad': 38,
-      'Seven Dwarfs Mine Train': 38,
-      "Tiana's Bayou Adventure": 40,
-      'Space Mountain': 44,
-      'TRON Lightcycle / Run': 48,
-      'Tomorrowland Speedway': 54,
+      'Avatar Flight of Passage': 44,
+      'Expedition Everest - Legend of the Forbidden Mountain': 44,
+      'Kali River Rapids': 38,
     };
     const LOCATIONS = {
-      "Buzz Lightyear's Space Ranger Spin": { lat: 28.4183, lng: -81.5794 },
-      "Walt Disney's Enchanted Tiki Room": { lat: 28.4182, lng: -81.5837 },
-      "The Barnstormer": { lat: 28.4208, lng: -81.5784 },
-      "Walt Disney World Railroad - Fantasyland": { lat: 28.4209, lng: -81.5784 },
-      "Casey Jr. Splash 'N' Soak Station": { lat: 28.4209, lng: -81.5787 },
-      "Seven Dwarfs Mine Train": { lat: 28.4204, lng: -81.5803 },
-      "A Pirate's Adventure ~ Treasures of the Seven Seas": { lat: 28.4184, lng: -81.5847 },
-      "Enchanted Tales with Belle": { lat: 28.4210, lng: -81.5809 },
-      "Prince Charming Regal Carrousel": { lat: 28.4202, lng: -81.5813 },
-      "Big Thunder Mountain Railroad": { lat: 28.4200, lng: -81.5846 },
-      '"it\'s a small world"': { lat: 28.4205, lng: -81.5820 },
-      "Mad Tea Party": { lat: 28.4200, lng: -81.5798 },
-      "Dumbo the Flying Elephant": { lat: 28.4205, lng: -81.5789 },
-      "Swiss Family Treehouse": { lat: 28.4184, lng: -81.5828 },
-      "Space Mountain": { lat: 28.4188, lng: -81.5782 },
-      "Peter Pan's Flight": { lat: 28.4203, lng: -81.5819 },
-      "Tomorrowland Speedway": { lat: 28.4194, lng: -81.5793 },
-      "The Magic Carpets of Aladdin": { lat: 28.4184, lng: -81.5835 },
-      "Walt Disney World Railroad - Main Street, U.S.A.": { lat: 28.4165, lng: -81.5812 },
-      "Country Bear Musical Jamboree": { lat: 28.4188, lng: -81.5837 },
-      "Mickey's PhilharMagic": { lat: 28.4200, lng: -81.5815 },
-      "Walt Disney's Carousel of Progress": { lat: 28.4180, lng: -81.5790 },
-      "Tomorrowland Transit Authority PeopleMover": { lat: 28.4182, lng: -81.5790 },
-      "Monsters Inc. Laugh Floor": { lat: 28.4184, lng: -81.5797 },
-      "The Hall of Presidents": { lat: 28.4194, lng: -81.5823 },
-      "Main Street Vehicles": { lat: 28.4169, lng: -81.5815 },
-      "Cinderella Castle": { lat: 28.4195, lng: -81.5812 },
-      "Astro Orbiter": { lat: 28.4185, lng: -81.5790 },
-      "Haunted Mansion": { lat: 28.4202, lng: -81.5829 },
-      "TRON Lightcycle / Run": { lat: 28.4196, lng: -81.5780 },
-      "The Many Adventures of Winnie the Pooh": { lat: 28.4202, lng: -81.5803 },
-      "Tiana's Bayou Adventure": { lat: 28.4194, lng: -81.5850 },
-      "Jungle Cruise": { lat: 28.4180, lng: -81.5834 },
-      "Under the Sea - Journey of The Little Mermaid": { lat: 28.4211, lng: -81.5800 },
-      "Pirates of the Caribbean": { lat: 28.4180, lng: -81.5842 },
+      "Wilderness Explorers": { lat: 28.356682, lng: -81.590292 },
+      "Animal Care at Conservation Station": { lat: 28.36533, lng: -81.58872 },
+      "Na'vi River Journey": { lat: 28.355257, lng: -81.591641 },
+      "Discovery Island Trails": { lat: 28.3581032852655, lng: -81.5911151562868 },
+      "Affection Section": { lat: 28.3653458262, lng: -81.5888520134 },
+      "Maharajah Jungle Trek": { lat: 28.359379, lng: -81.589019 },
+      "Kali River Rapids": { lat: 28.3587834288, lng: -81.5889412165 },
+      "The Oasis Exhibits": { lat: 28.355965, lng: -81.59014 },
+      "Wildlife Express Train": { lat: 28.3598097347, lng: -81.5914175464 },
+      "Tree of Life": { lat: 28.357994, lng: -81.590597 },
+      "Gorilla Falls Exploration Trail": { lat: 28.359954, lng: -81.592149 },
+      "Avatar Flight of Passage": { lat: 28.355554, lng: -81.592147 },
+      "Kilimanjaro Safaris": { lat: 28.359331, lng: -81.59228 },
+      "Expedition Everest - Legend of the Forbidden Mountain": { lat: 28.3584769119, lng: -81.5873781396 },
+      "Zootopia: Better Zoogether!": { lat: 28.357488, lng: -81.590118 },
     };
 
     let rides = [], shows = [], characters = [], dining = [];
@@ -243,7 +220,6 @@
       const res = await fetch(API_URL);
       const data = await res.json();
 
-      // Use the most recent lastUpdated across all entries
       const timestamps = (data.liveData || [])
         .map(e => e.lastUpdated ? new Date(e.lastUpdated).getTime() : 0)
         .filter(t => t > 0);
@@ -338,7 +314,7 @@
         }
 
         let llHtml;
-        const { type, state, time, price } = r.ll;
+        const { type, state, time } = r.ll;
         if (!type) {
           llHtml = '<span class="ll none">N/A</span>';
         } else if (state === 'AVAILABLE') {
@@ -404,7 +380,6 @@
 
       document.getElementById('diningTbody').innerHTML = filtered.map(r => {
         const operating = r.status === 'OPERATING';
-        const dot = `<span class="dot ${operating ? 'open' : 'closed'}"></span>`;
         let waitHtml;
         if (!operating) {
           waitHtml = '<span class="wait unavail">Closed</span>';
@@ -415,7 +390,7 @@
           waitHtml = `<span class="wait ${cls}">${waitText}</span>`;
         }
         return `<tr>
-          <td><div class="name-cell">${dot}${r.name}</div></td>
+          <td>${r.name}</td>
           <td>${waitHtml}</td>
         </tr>`;
       }).join('');

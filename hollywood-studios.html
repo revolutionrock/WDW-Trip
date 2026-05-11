@@ -49,6 +49,9 @@
     .ll.full { background: #f3e5f5; color: #7b1fa2; }
     .showtime-list { font-size: 0.85rem; color: #444; }
     .td-nowrap { white-space: nowrap; width: 1%; }
+    .ride-link { color: inherit; text-decoration: underline; text-decoration-color: #c5cae9; text-underline-offset: 2px; }
+    .ride-link:hover { text-decoration-color: #3949ab; color: #3949ab; }
+    .ride-link.loading { opacity: 0.5; pointer-events: none; }
     .hidden { display: none; }
     .view-select { display: none; width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; color: #3949ab; font-weight: 600; margin-bottom: 12px; cursor: pointer; }
     @media (max-width: 600px) {
@@ -71,6 +74,7 @@
       <a href="magic-kingdom.html">🏰 Magic Kingdom</a>
       <a href="epcot.html">🌎 Epcot</a>
       <a class="current" href="hollywood-studios.html">🎬 Hollywood Studios</a>
+      <a href="animal-kingdom.html">🌿 Animal Kingdom</a>
     </div>
   </div>
 
@@ -158,10 +162,23 @@
       'Alien Swirling Saucers': 32,
       'Millennium Falcon: Smugglers Run': 38,
       'Slinky Dog Dash': 38,
-      'Star Tours - The Adventures Continue': 40,
+      'Star Tours – The Adventures Continue': 40,
       'Star Wars: Rise of the Resistance': 40,
-      'The Twilight Zone Tower of Terror': 40,
-      "Rock 'n' Roller Coaster Starring Aerosmith": 48,
+      'The Twilight Zone™ Tower of Terror': 40,
+      "Rock 'n' Roller Coaster Starring The Muppets": 48,
+    };
+    const LOCATIONS = {
+      "Millennium Falcon: Smugglers Run": { lat: 28.353889, lng: -81.561689 },
+      "Rock 'n' Roller Coaster Starring The Muppets": { lat: 28.359712, lng: -81.56059 },
+      "The Twilight Zone™ Tower of Terror": { lat: 28.359553, lng: -81.559772 },
+      "Walt Disney Presents": { lat: 28.35686, lng: -81.560982 },
+      "Alien Swirling Saucers": { lat: 28.355385, lng: -81.562379 },
+      "Slinky Dog Dash": { lat: 28.356245, lng: -81.562786 },
+      "Vacation Fun - An Original Animated Short with Mickey & Minnie": { lat: 28.356316, lng: -81.559031 },
+      "Mickey & Minnie's Runaway Railway": { lat: 28.3566783801, lng: -81.5605667783 },
+      "Star Wars: Rise of the Resistance": { lat: 28.354884, lng: -81.560457 },
+      "Toy Story Mania!": { lat: 28.356404, lng: -81.561894 },
+      "Star Tours – The Adventures Continue": { lat: 28.355695, lng: -81.558891 },
     };
 
     let rides = [], shows = [], characters = [], dining = [];
@@ -215,6 +232,7 @@
       rides = (data.liveData || [])
         .filter(e => e.entityType === 'ATTRACTION')
         .map(e => ({
+          id: e.id,
           name: e.name,
           wait: e.queue?.STANDBY?.waitTime ?? null,
           ll: parseLl(e.queue),
@@ -307,7 +325,7 @@
         }
 
         return `<tr>
-          <td>${r.name}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''}</td>
+          <td>${LOCATIONS[r.name] ? `<a class="ride-link" href="https://maps.google.com/?q=${LOCATIONS[r.name].lat},${LOCATIONS[r.name].lng}" target="_blank">${r.name}</a>` : `<a class="ride-link" href="#" onclick="locateRide('${r.id}',this);return false;">${r.name}</a>`}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''}</td>
           <td class="td-nowrap">${waitHtml}</td>
           <td class="td-nowrap">${llHtml}</td>
         </tr>`;
@@ -497,6 +515,25 @@
     applySortUI('charactersTable', characterSort);
     applySortUI('diningTable', diningSort);
     load();
+
+    const locationCache = {};
+    async function locateRide(id, el) {
+      if (locationCache[id]) {
+        window.open(`https://maps.google.com/?q=${locationCache[id].lat},${locationCache[id].lng}`, '_blank');
+        return;
+      }
+      el.classList.add('loading');
+      try {
+        const data = await fetch(`https://api.themeparks.wiki/v1/entity/${id}`).then(r => r.json());
+        const lat = data.location?.latitude, lng = data.location?.longitude;
+        if (lat && lng) {
+          locationCache[id] = { lat, lng };
+          window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+        }
+      } finally {
+        el.classList.remove('loading');
+      }
+    }
 
     function toggleMenu() {
       document.getElementById('parkMenu').classList.toggle('open');
