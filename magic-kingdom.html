@@ -49,6 +49,10 @@
     .ll.full { background: #f3e5f5; color: #7b1fa2; }
     .showtime-list { font-size: 0.85rem; color: #444; }
     .td-nowrap { white-space: nowrap; width: 1%; }
+    .locate-btn { background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0 2px; opacity: 0.4; transition: opacity 0.15s; vertical-align: middle; }
+    .locate-btn:hover { opacity: 1; }
+    .locate-btn.loading { animation: spin 0.8s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .hidden { display: none; }
     .view-select { display: none; width: 100%; padding: 10px; font-size: 1rem; border: 2px solid #c5cae9; border-radius: 8px; background: #fff; color: #3949ab; font-weight: 600; margin-bottom: 12px; cursor: pointer; }
     @media (max-width: 600px) {
@@ -215,6 +219,7 @@
       rides = (data.liveData || [])
         .filter(e => e.entityType === 'ATTRACTION')
         .map(e => ({
+          id: e.id,
           name: e.name,
           wait: e.queue?.STANDBY?.waitTime ?? null,
           ll: parseLl(e.queue),
@@ -307,7 +312,7 @@
         }
 
         return `<tr>
-          <td>${r.name}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''}</td>
+          <td>${r.name}${HEIGHT_REQS[r.name] ? ` <span style="font-size:0.78rem;color:#888;">(>${HEIGHT_REQS[r.name]}")</span>` : ''} <button class="locate-btn" title="Locate on map" onclick="locateRide('${r.id}', this)">📍</button></td>
           <td class="td-nowrap">${waitHtml}</td>
           <td class="td-nowrap">${llHtml}</td>
         </tr>`;
@@ -497,6 +502,35 @@
     applySortUI('charactersTable', characterSort);
     applySortUI('diningTable', diningSort);
     load();
+
+    const locationCache = {};
+    async function locateRide(id, btn) {
+      if (locationCache[id]) {
+        const { lat, lng } = locationCache[id];
+        window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+        return;
+      }
+      btn.classList.add('loading');
+      btn.textContent = '⏳';
+      try {
+        const res = await fetch(`https://api.themeparks.wiki/v1/entity/${id}`);
+        const data = await res.json();
+        console.log('entity data:', JSON.stringify(data));
+        const lat = data.location?.latitude;
+        const lng = data.location?.longitude;
+        if (lat && lng) {
+          locationCache[id] = { lat, lng };
+          window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+        } else {
+          alert('Location not available for this attraction.');
+        }
+      } catch(e) {
+        alert('Failed to fetch location: ' + e.message);
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = '📍';
+      }
+    }
 
     function toggleMenu() {
       document.getElementById('parkMenu').classList.toggle('open');
